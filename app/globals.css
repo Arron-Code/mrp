@@ -1,0 +1,154 @@
+:root {
+  color: #17211a;
+  background: #f5f7f5;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wrap {
+  width: min(1100px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.landing {
+  max-width: 700px;
+  padding-top: 16vh;
+}
+
+.eyebrow {
+  color: #166534;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+.muted {
+  color: #5d6c60;
+}
+
+.card {
+  padding: 20px;
+  border: 1px solid #dce5dd;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(23, 33, 26, .04);
+}
+
+.admin-narrow {
+  max-width: 480px;
+}
+
+.admin-form {
+  display: grid;
+  gap: 16px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #c8d4ca;
+  border-radius: 8px;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.btn,
+.danger {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 9px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn {
+  color: #fff;
+  background: #166534;
+}
+
+.btn.secondary {
+  color: #14532d;
+  background: #dcfce7;
+}
+
+.danger {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+.actions,
+.admin-cols,
+.admin-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-cols > * {
+  flex: 1 1 180px;
+}
+
+.admin-list {
+  display: grid;
+  margin-top: 20px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check input {
+  width: auto;
+}
+
+@import "./globals-erp.css";

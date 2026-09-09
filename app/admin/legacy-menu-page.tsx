@@ -1,4 +1,182 @@
 "use client";
-import { SubmitEvent, useEffect, useState } from "react";import{AdminNav}from"./page";
-type Item={id:string;name:string;description:string;priceCents:number;category:"FOOD"|"DRINK";available:boolean;sortOrder:number};const empty={name:"",description:"",price:"",category:"FOOD" as "FOOD"|"DRINK",available:true,sortOrder:0};
-export default function MenuAdmin(){const[items,setItems]=useState<Item[]>([]);const[form,setForm]=useState({...empty});const[editing,setEditing]=useState<string|null>(null);const[msg,setMsg]=useState("");async function load(){const r=await fetch("/api/admin/menu",{cache:"no-store"});if(r.status===401){location.href="/admin";return}if(r.ok)setItems(await r.json())}useEffect(()=>{load()},[]);function edit(x:Item){setEditing(x.id);setForm({name:x.name,description:x.description,price:(x.priceCents/100).toFixed(2),category:x.category,available:x.available,sortOrder:x.sortOrder});scrollTo({top:0,behavior:"smooth"})}async function save(e:SubmitEvent){e.preventDefault();const body={name:form.name,description:form.description,priceCents:Math.round(Number(form.price.replace(",","."))*100),category:form.category,available:form.available,sortOrder:Number(form.sortOrder)};const r=await fetch(editing?`/api/admin/menu/${editing}`:"/api/admin/menu",{method:editing?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(r.ok){setForm({...empty});setEditing(null);setMsg("Gespeichert.");load()}else setMsg((await r.json()).error||"Fehler")}async function del(id:string){if(!confirm("Produkt wirklich löschen?"))return;const r=await fetch(`/api/admin/menu/${id}`,{method:"DELETE"});if(r.ok)load();else setMsg((await r.json()).error)}return <main className="wrap"><AdminNav/><h1>Speisekarte</h1><form onSubmit={save} className="card admin-form"><h2>{editing?"Produkt bearbeiten":"Neues Produkt"}</h2><label>Name<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>Beschreibung<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label><div className="admin-cols"><label>Preis in €<input value={form.price} onChange={e=>setForm({...form,price:e.target.value})} required/></label><label>Kategorie<select value={form.category} onChange={e=>setForm({...form,category:e.target.value as "FOOD"|"DRINK"})}><option value="FOOD">Speise</option><option value="DRINK">Getränk</option></select></label><label>Sortierung<input type="number" value={form.sortOrder} onChange={e=>setForm({...form,sortOrder:Number(e.target.value)})}/></label></div><label className="check"><input type="checkbox" checked={form.available} onChange={e=>setForm({...form,available:e.target.checked})}/> Im QR-Menü verfügbar</label><div className="actions"><button className="btn">Speichern</button>{editing&&<button type="button" className="btn secondary" onClick={()=>{setEditing(null);setForm({...empty})}}>Abbrechen</button>}</div>{msg&&<p>{msg}</p>}</form><div className="admin-list">{items.map(x=><article className="card row" key={x.id}><div><b>{x.name}</b><p className="muted">{x.description}</p><strong>{(x.priceCents/100).toFixed(2)} €</strong></div><div className="actions"><button className="btn secondary" onClick={()=>edit(x)}>Bearbeiten</button><button className="danger" onClick={()=>del(x.id)}>Löschen</button></div></article>)}</div></main>}
+import { SubmitEvent, useEffect, useState } from "react";
+import { AdminNav } from "./admin-nav";
+type Item = {
+  id: string;
+  name: string;
+  description: string;
+  priceCents: number;
+  category: "FOOD" | "DRINK";
+  available: boolean;
+  sortOrder: number;
+};
+const empty = {
+  name: "",
+  description: "",
+  price: "",
+  category: "FOOD" as "FOOD" | "DRINK",
+  available: true,
+  sortOrder: 0,
+};
+export default function MenuAdmin() {
+  const [items, setItems] = useState<Item[]>([]);
+  const [form, setForm] = useState({ ...empty });
+  const [editing, setEditing] = useState<string | null>(null);
+  const [msg, setMsg] = useState("");
+  async function load() {
+    const r = await fetch("/api/admin/menu", { cache: "no-store" });
+    if (r.status === 401) {
+      location.href = "/admin";
+      return;
+    }
+    if (r.ok) setItems(await r.json());
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  function edit(x: Item) {
+    setEditing(x.id);
+    setForm({
+      name: x.name,
+      description: x.description,
+      price: (x.priceCents / 100).toFixed(2),
+      category: x.category,
+      available: x.available,
+      sortOrder: x.sortOrder,
+    });
+    scrollTo({ top: 0, behavior: "smooth" });
+  }
+  async function save(e: SubmitEvent) {
+    e.preventDefault();
+    const body = {
+      name: form.name,
+      description: form.description,
+      priceCents: Math.round(Number(form.price.replace(",", ".")) * 100),
+      category: form.category,
+      available: form.available,
+      sortOrder: Number(form.sortOrder),
+    };
+    const r = await fetch(
+      editing ? `/api/admin/menu/${editing}` : "/api/admin/menu",
+      {
+        method: editing ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+    if (r.ok) {
+      setForm({ ...empty });
+      setEditing(null);
+      setMsg("Gespeichert.");
+      load();
+    } else setMsg((await r.json()).error || "Fehler");
+  }
+  async function del(id: string) {
+    if (!confirm("Produkt wirklich löschen?")) return;
+    const r = await fetch(`/api/admin/menu/${id}`, { method: "DELETE" });
+    if (r.ok) load();
+    else setMsg((await r.json()).error);
+  }
+  return (
+    <main className="wrap">
+      <AdminNav />
+      <h1>Speisekarte</h1>
+      <form onSubmit={save} className="card admin-form">
+        <h2>{editing ? "Produkt bearbeiten" : "Neues Produkt"}</h2>
+        <label>
+          Name
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+        </label>
+        <label>
+          Beschreibung
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+          />
+        </label>
+        <div className="admin-cols">
+          <label>
+            Preis in €
+            <input
+              value={form.price}
+              onChange={(e) => setForm({ ...form, price: e.target.value })}
+              required
+            />
+          </label>
+          <label>
+            Kategorie
+            <select
+              value={form.category}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  category: e.target.value as "FOOD" | "DRINK",
+                })
+              }
+            >
+              <option value="FOOD">Speise</option>
+              <option value="DRINK">Getränk</option>
+            </select>
+          </label>
+          <label>
+            Sortierung
+            <input
+              type="number"
+              value={form.sortOrder}
+              onChange={(e) =>
+                setForm({ ...form, sortOrder: Number(e.target.value) })
+              }
+            />
+          </label>
+        </div>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={form.available}
+            onChange={(e) => setForm({ ...form, available: e.target.checked })}
+          />{" "}
+          Im QR-Menü verfügbar
+        </label>
+        <div className="actions">
+          <button className="btn">Speichern</button>
+          {editing && (
+            <button
+              type="button"
+              className="btn secondary"
+              onClick={() => {
+                setEditing(null);
+                setForm({ ...empty });
+              }}
+            >
+              Abbrechen
+            </button>
+          )}
+        </div>
+        {msg && <p>{msg}</p>}
+      </form>
+      <div className="admin-list">
+        {items.map((x) => (
+          <article className="card row" key={x.id}>
+            <div>
+              <b>{x.name}</b>
+              <p className="muted">{x.description}</p>
+              <strong>{(x.priceCents / 100).toFixed(2)} €</strong>
+            </div>
+            <div className="actions">
+              <button className="btn secondary" onClick={() => edit(x)}>
+                Bearbeiten
+              </button>
+              <button className="danger" onClick={() => del(x.id)}>
+                Löschen
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </main>
+  );
+}

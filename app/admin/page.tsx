@@ -1,12 +1,100 @@
 "use client";
 import { SubmitEvent, useEffect, useState } from "react";
-type Overview={ordersToday:number;openOrders:number;revenueCents:number;lowStock:number;ingredients:number};
-export default function Admin(){const[logged,setLogged]=useState<boolean|null>(null);const[password,setPassword]=useState("");const[data,setData]=useState<Overview|null>(null);const[msg,setMsg]=useState("");
-async function load(){const r=await fetch("/api/admin/overview",{cache:"no-store"});if(r.status===401){setLogged(false);return;}if(r.ok){setData(await r.json());setLogged(true);}}
-useEffect(()=>{load()},[]);async function login(e:SubmitEvent){e.preventDefault();const r=await fetch("/api/admin/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password})});if(r.ok){setPassword("");load()}else setMsg("Passwort ist nicht korrekt.");}
-async function logout(){await fetch("/api/admin/logout",{method:"POST"});setLogged(false);setData(null)}
-if(logged===null)return <main className="wrap"><p>Verwaltung wird geladen...</p></main>;
-if(!logged)return <main className="wrap admin-narrow"><h1>Restaurant ERP</h1><p className="muted">Mitarbeiter-Login</p><form onSubmit={login} className="card admin-form"><label>Admin-Passwort<input type="password" value={password} onChange={e=>setPassword(e.target.value)} required/></label><button className="btn">Anmelden</button>{msg&&<p>{msg}</p>}</form></main>;
-return <main className="wrap"><AdminNav logout={logout}/><h1>ERP-Dashboard</h1><p className="muted">Aktueller Überblick über Restaurant, Bestellungen und Lager.</p><div className="metric-grid"><Metric label="Heutige Bestellungen" value={data?.ordersToday??0}/><Metric label="Offene Bestellungen" value={data?.openOrders??0}/><Metric label="Heutiger bezahlter Umsatz" value={((data?.revenueCents??0)/100).toFixed(2)+" €"}/><Metric label="Lagerwarnungen" value={data?.lowStock??0}/><Metric label="Aktive Zutaten" value={data?.ingredients??0}/></div></main>}
-function Metric({label,value}:{label:string;value:string|number}){return <article className="card metric"><span className="muted">{label}</span><strong>{value}</strong></article>}
-export function AdminNav({logout}:{logout?:()=>void}){return <nav className="admin-nav"><a href="/admin">Dashboard</a><a href="/admin/menu">Speisekarte</a><a href="/admin/orders">Bestellungen</a><a href="/admin/inventory">Lager</a><a href="/admin/recipes">Rezepturen</a><a href="/admin/suppliers">Lieferanten</a><a href="/admin/purchases">Einkauf</a>{logout&&<button className="btn secondary" onClick={logout}>Abmelden</button>}</nav>}
+import { AdminNav } from "./admin-nav";
+type Overview = {
+  ordersToday: number;
+  openOrders: number;
+  revenueCents: number;
+  lowStock: number;
+  ingredients: number;
+};
+export default function Admin() {
+  const [logged, setLogged] = useState<boolean | null>(null);
+  const [password, setPassword] = useState("");
+  const [data, setData] = useState<Overview | null>(null);
+  const [msg, setMsg] = useState("");
+  async function load() {
+    const r = await fetch("/api/admin/overview", { cache: "no-store" });
+    if (r.status === 401) {
+      setLogged(false);
+      return;
+    }
+    if (r.ok) {
+      setData(await r.json());
+      setLogged(true);
+    }
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  async function login(e: SubmitEvent) {
+    e.preventDefault();
+    const r = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (r.ok) {
+      setPassword("");
+      load();
+    } else setMsg("Passwort ist nicht korrekt.");
+  }
+  async function logout() {
+    await fetch("/api/admin/logout", { method: "POST" });
+    setLogged(false);
+    setData(null);
+  }
+  if (logged === null)
+    return (
+      <main className="wrap">
+        <p>Verwaltung wird geladen...</p>
+      </main>
+    );
+  if (!logged)
+    return (
+      <main className="wrap admin-narrow">
+        <h1>Restaurant ERP</h1>
+        <p className="muted">Mitarbeiter-Login</p>
+        <form onSubmit={login} className="card admin-form">
+          <label>
+            Admin-Passwort
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          <button className="btn">Anmelden</button>
+          {msg && <p>{msg}</p>}
+        </form>
+      </main>
+    );
+  return (
+    <main className="wrap">
+      <AdminNav logout={logout} />
+      <h1>ERP-Dashboard</h1>
+      <p className="muted">
+        Aktueller Überblick über Restaurant, Bestellungen und Lager.
+      </p>
+      <div className="metric-grid">
+        <Metric label="Heutige Bestellungen" value={data?.ordersToday ?? 0} />
+        <Metric label="Offene Bestellungen" value={data?.openOrders ?? 0} />
+        <Metric
+          label="Heutiger bezahlter Umsatz"
+          value={((data?.revenueCents ?? 0) / 100).toFixed(2) + " €"}
+        />
+        <Metric label="Lagerwarnungen" value={data?.lowStock ?? 0} />
+        <Metric label="Aktive Zutaten" value={data?.ingredients ?? 0} />
+      </div>
+    </main>
+  );
+}
+function Metric({ label, value }: { label: string; value: string | number }) {
+  return (
+    <article className="card metric">
+      <span className="muted">{label}</span>
+      <strong>{value}</strong>
+    </article>
+  );
+}

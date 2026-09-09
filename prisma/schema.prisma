@@ -7,10 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum OrderStatus { NEW CONFIRMED PREPARING SERVED PAID CANCELLED }
-enum MenuCategory { FOOD DRINK }
-enum StockMovementType { RECEIPT CONSUMPTION ADJUSTMENT WASTE }
-enum PurchaseOrderStatus { DRAFT ORDERED RECEIVED CANCELLED }
+enum OrderStatus {
+  NEW
+  CONFIRMED
+  PREPARING
+  SERVED
+  PAID
+  CANCELLED
+}
+
+enum MenuCategory {
+  FOOD
+  DRINK
+}
+
+enum StockMovementType {
+  RECEIPT
+  CONSUMPTION
+  ADJUSTMENT
+  WASTE
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
 
 model RestaurantTable {
   id String @id @default(cuid())

@@ -1,1 +1,147 @@
-"use client";import{SubmitEvent,useEffect,useState}from"react";import{AdminNav}from"../page";const empty={name:"",unit:"kg",stock:0,minimumStock:0,costPerUnitCents:0,active:true};export default function Page(){const[rows,setRows]=useState<any[]>([]);const[form,setForm]=useState({...empty});const[msg,setMsg]=useState("");async function load(){const r=await fetch("/api/admin/ingredients",{cache:"no-store"});if(r.status===401)return location.href="/admin";setRows(await r.json())}useEffect(()=>{load()},[]);async function save(e:SubmitEvent){e.preventDefault();const r=await fetch("/api/admin/ingredients",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});if(r.ok){setForm({...empty});load()}else setMsg((await r.json()).error)}async function adjust(id:string){const raw=prompt("Bestandsänderung eingeben, z. B. 5 oder -2:");if(!raw)return;const reason=prompt("Grund:")||"Manuelle Korrektur";const r=await fetch(`/api/admin/ingredients/${id}/adjust`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({quantity:Number(raw.replace(",",".")),reason})});if(r.ok)load();else setMsg((await r.json()).error)}return <main className="wrap"><AdminNav/><h1>Lager</h1><form className="card admin-form" onSubmit={save}><h2>Zutat anlegen</h2><div className="admin-cols"><label>Name<input value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/></label><label>Einheit<input value={form.unit} onChange={e=>setForm({...form,unit:e.target.value})} required/></label><label>Anfangsbestand<input type="number" step="0.001" value={form.stock} onChange={e=>setForm({...form,stock:Number(e.target.value)})}/></label><label>Mindestbestand<input type="number" step="0.001" value={form.minimumStock} onChange={e=>setForm({...form,minimumStock:Number(e.target.value)})}/></label><label>Kosten je Einheit in Cent<input type="number" value={form.costPerUnitCents} onChange={e=>setForm({...form,costPerUnitCents:Number(e.target.value)})}/></label></div><button className="btn">Zutat anlegen</button>{msg&&<p>{msg}</p>}</form><div className="table-wrap"><table><thead><tr><th>Zutat</th><th>Bestand</th><th>Minimum</th><th>Kosten</th><th></th></tr></thead><tbody>{rows.map(x=><tr className={x.stock<=x.minimumStock?"low-stock":""} key={x.id}><td>{x.name}</td><td>{x.stock} {x.unit}</td><td>{x.minimumStock} {x.unit}</td><td>{(x.costPerUnitCents/100).toFixed(2)} €</td><td><button className="btn secondary" onClick={()=>adjust(x.id)}>Korrigieren</button></td></tr>)}</tbody></table></div></main>}
+"use client";
+import { SubmitEvent, useEffect, useState } from "react";
+import { AdminNav } from "../admin-nav";
+const empty = {
+  name: "",
+  unit: "kg",
+  stock: 0,
+  minimumStock: 0,
+  costPerUnitCents: 0,
+  active: true,
+};
+export default function Page() {
+  const [rows, setRows] = useState<any[]>([]);
+  const [form, setForm] = useState({ ...empty });
+  const [msg, setMsg] = useState("");
+  async function load() {
+    const r = await fetch("/api/admin/ingredients", { cache: "no-store" });
+    if (r.status === 401) return (location.href = "/admin");
+    setRows(await r.json());
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  async function save(e: SubmitEvent) {
+    e.preventDefault();
+    const r = await fetch("/api/admin/ingredients", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    if (r.ok) {
+      setForm({ ...empty });
+      load();
+    } else setMsg((await r.json()).error);
+  }
+  async function adjust(id: string) {
+    const raw = prompt("Bestandsänderung eingeben, z. B. 5 oder -2:");
+    if (!raw) return;
+    const reason = prompt("Grund:") || "Manuelle Korrektur";
+    const r = await fetch(`/api/admin/ingredients/${id}/adjust`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quantity: Number(raw.replace(",", ".")), reason }),
+    });
+    if (r.ok) load();
+    else setMsg((await r.json()).error);
+  }
+  return (
+    <main className="wrap">
+      <AdminNav />
+      <h1>Lager</h1>
+      <form className="card admin-form" onSubmit={save}>
+        <h2>Zutat anlegen</h2>
+        <div className="admin-cols">
+          <label>
+            Name
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              required
+            />
+          </label>
+          <label>
+            Einheit
+            <input
+              value={form.unit}
+              onChange={(e) => setForm({ ...form, unit: e.target.value })}
+              required
+            />
+          </label>
+          <label>
+            Anfangsbestand
+            <input
+              type="number"
+              step="0.001"
+              value={form.stock}
+              onChange={(e) =>
+                setForm({ ...form, stock: Number(e.target.value) })
+              }
+            />
+          </label>
+          <label>
+            Mindestbestand
+            <input
+              type="number"
+              step="0.001"
+              value={form.minimumStock}
+              onChange={(e) =>
+                setForm({ ...form, minimumStock: Number(e.target.value) })
+              }
+            />
+          </label>
+          <label>
+            Kosten je Einheit in Cent
+            <input
+              type="number"
+              value={form.costPerUnitCents}
+              onChange={(e) =>
+                setForm({ ...form, costPerUnitCents: Number(e.target.value) })
+              }
+            />
+          </label>
+        </div>
+        <button className="btn">Zutat anlegen</button>
+        {msg && <p>{msg}</p>}
+      </form>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Zutat</th>
+              <th>Bestand</th>
+              <th>Minimum</th>
+              <th>Kosten</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((x) => (
+              <tr
+                className={x.stock <= x.minimumStock ? "low-stock" : ""}
+                key={x.id}
+              >
+                <td>{x.name}</td>
+                <td>
+                  {x.stock} {x.unit}
+                </td>
+                <td>
+                  {x.minimumStock} {x.unit}
+                </td>
+                <td>{(x.costPerUnitCents / 100).toFixed(2)} €</td>
+                <td>
+                  <button
+                    className="btn secondary"
+                    onClick={() => adjust(x.id)}
+                  >
+                    Korrigieren
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  );
+}
