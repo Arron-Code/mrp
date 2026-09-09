@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus { NEW CONFIRMED PREPARING SERVED PAID CANCELLED }
+enum MenuCategory { FOOD DRINK }
+enum StockMovementType { RECEIPT CONSUMPTION ADJUSTMENT WASTE }
+enum PurchaseOrderStatus { DRAFT ORDERED RECEIVED CANCELLED }
+
+model RestaurantTable {
+  id String @id @default(cuid())
+  number Int @unique
+  token String @unique
+  active Boolean @default(true)
+  orders Order[]
+}
+
+model MenuItem {
+  id String @id @default(cuid())
+  name String
+  description String
+  priceCents Int
+  category MenuCategory @default(FOOD)
+  available Boolean @default(true)
+  sortOrder Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orderItems OrderItem[]
+  recipeItems RecipeItem[]
+}
+
+model Order {
+  id String @id @default(cuid())
+  tableId String
+  table RestaurantTable @relation(fields: [tableId], references: [id])
+  status OrderStatus @default(NEW)
+  note String?
+  inventoryPostedAt DateTime?
+  items OrderItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  stockMovements StockMovement[]
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id String @id @default(cuid())
+  orderId String
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItemId String
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity Int
+  unitPriceCents Int
+}
+
+model Ingredient {
+  id String @id @default(cuid())
+  name String @unique
+  unit String
+  stock Decimal @default(0) @db.Decimal(12, 3)
+  minimumStock Decimal @default(0) @db.Decimal(12, 3)
+  costPerUnitCents Int @default(0)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  recipeItems RecipeItem[]
+  stockMovements StockMovement[]
+  purchaseItems PurchaseOrderItem[]
+}
+
+model RecipeItem {
+  id String @id @default(cuid())
+  menuItemId String
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity Decimal @db.Decimal(12, 3)
+  @@unique([menuItemId, ingredientId])
+}
+
+model Supplier {
+  id String @id @default(cuid())
+  name String @unique
+  email String?
+  phone String?
+  address String?
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  purchaseOrders PurchaseOrder[]
+}
+
+model PurchaseOrder {
+  id String @id @default(cuid())
+  supplierId String
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+  status PurchaseOrderStatus @default(DRAFT)
+  note String?
+  orderedAt DateTime?
+  receivedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items PurchaseOrderItem[]
+  stockMovements StockMovement[]
+}
+
+model PurchaseOrderItem {
+  id String @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  ingredientId String
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity Decimal @db.Decimal(12, 3)
+  unitCostCents Int
+}
+
+model StockMovement {
+  id String @id @default(cuid())
+  ingredientId String
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+  type StockMovementType
+  quantity Decimal @db.Decimal(12, 3)
+  reason String?
+  orderId String?
+  order Order? @relation(fields: [orderId], references: [id])
+  purchaseOrderId String?
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id])
+  createdAt DateTime @default(now())
+  @@index([ingredientId, createdAt])
+}
